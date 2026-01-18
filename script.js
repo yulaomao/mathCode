@@ -9,12 +9,16 @@ const Game = {
     audioCtx: null,
     synthesis: window.speechSynthesis,
     voice: null,
+    isMobile: /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent),
+    isLandscape: false,
 
     init() {
+        this.setupMobileOptimizations();
         this.setupNavigation();
         this.setupAudio();
         this.initTTS();
         this.startStarfield();
+        this.handleOrientationChange();
         
         // Initialize modules
         WarmupModule.init();
@@ -24,6 +28,88 @@ const Game = {
 
         // Start with warmup
         this.switchModule('warmup');
+    },
+
+    setupMobileOptimizations() {
+        // 防止移动端双击放大
+        let lastTouchEnd = 0;
+        document.addEventListener('touchend', (e) => {
+            const now = Date.now();
+            if (now - lastTouchEnd <= 300) {
+                e.preventDefault();
+            }
+            lastTouchEnd = now;
+        }, false);
+
+        // 防止页面滚动
+        document.body.addEventListener('touchmove', (e) => {
+            if (e.target === document.body) {
+                e.preventDefault();
+            }
+        }, { passive: false });
+
+        // 监听屏幕方向变化
+        window.addEventListener('orientationchange', () => {
+            this.handleOrientationChange();
+        });
+
+        window.addEventListener('resize', () => {
+            this.handleOrientationChange();
+        });
+
+        // iOS Safari地址栏处理
+        if (this.isMobile) {
+            const updateViewportHeight = () => {
+                const vh = window.innerHeight * 0.01;
+                document.documentElement.style.setProperty('--vh', `${vh}px`);
+            };
+            updateViewportHeight();
+            window.addEventListener('resize', updateViewportHeight);
+        }
+        
+        // 为所有交互元素添加触摸反馈
+        this.addTouchFeedback();
+        
+        // 防止iOS Safari弹性滚动
+        document.addEventListener('touchmove', (e) => {
+            if (e.scale !== 1) {
+                e.preventDefault();
+            }
+        }, { passive: false });
+    },
+    
+    addTouchFeedback() {
+        // 为所有可点击元素添加触摸反馈
+        const interactiveElements = document.querySelectorAll('button, .nav-btn, .diff-btn, .action-btn, .secondary-btn');
+        
+        interactiveElements.forEach(element => {
+            element.addEventListener('touchstart', () => {
+                element.style.opacity = '0.7';
+            }, { passive: true });
+            
+            element.addEventListener('touchend', () => {
+                element.style.opacity = '1';
+            }, { passive: true });
+            
+            element.addEventListener('touchcancel', () => {
+                element.style.opacity = '1';
+            }, { passive: true });
+        });
+    },
+
+    handleOrientationChange() {
+        const wasLandscape = this.isLandscape;
+        this.isLandscape = window.innerWidth > window.innerHeight;
+        
+        if (wasLandscape !== this.isLandscape) {
+            // 屏幕方向改变时重新调整画布大小
+            setTimeout(() => {
+                if (this.currentModule === 'warmup' && WarmupModule.canvas) {
+                    WarmupModule.resizeCanvas();
+                }
+                // 可以在这里添加其他模块的重绘逻辑
+            }, 100);
+        }
     },
 
     initTTS() {
@@ -214,23 +300,27 @@ const WarmupModule = {
         this.canvas = document.getElementById('warmup-canvas');
         this.ctx = this.canvas.getContext('2d');
         
-        const resize = () => {
-            if(this.canvas.parentElement) {
-                this.canvas.width = this.canvas.parentElement.clientWidth;
-                this.canvas.height = this.canvas.parentElement.clientHeight;
-            }
-        };
-        window.addEventListener('resize', resize);
+        this.resizeCanvas();
+        window.addEventListener('resize', () => this.resizeCanvas());
         
-        this.canvas.addEventListener('mousedown', (e) => this.handleClick(e));
+        // 统一的点击处理函数
+        const handleInteraction = (clientX, clientY) => {
+            const rect = this.canvas.getBoundingClientRect();
+            const x = clientX - rect.left;
+            const y = clientY - rect.top;
+            this.handleClick(x, y);
+        };
+        
+        // 鼠标事件
+        this.canvas.addEventListener('mousedown', (e) => {
+            handleInteraction(e.clientX, e.clientY);
+        });
+        
+        // 触摸事件优化
         this.canvas.addEventListener('touchstart', (e) => {
             e.preventDefault();
             const touch = e.touches[0];
-            const mouseEvent = new MouseEvent("mousedown", {
-                clientX: touch.clientX,
-                clientY: touch.clientY
-            });
-            this.canvas.dispatchEvent(mouseEvent);
+            handleInteraction(touch.clientX, touch.clientY);
         }, {passive: false});
 
         // Bind Difficulty Buttons
@@ -242,15 +332,19 @@ const WarmupModule = {
         });
     },
 
+    resizeCanvas() {
+        if(this.canvas && this.canvas.parentElement) {
+            this.canvas.width = this.canvas.parentElement.clientWidth;
+            this.canvas.height = this.canvas.parentElement.clientHeight;
+        }
+    },
+
     start() {
         document.getElementById('warmup-menu').style.display = 'flex';
         document.getElementById('warmup-result').style.display = 'none';
         this.active = false; 
         
-        if(this.canvas.parentElement) {
-            this.canvas.width = this.canvas.parentElement.clientWidth;
-            this.canvas.height = this.canvas.parentElement.clientHeight;
-        }
+        this.resizeCanvas();
     },
 
     startGame(difficultySpeed) {
@@ -536,12 +630,8 @@ const WarmupModule = {
         requestAnimationFrame((t) => this.loop(t));
     },
 
-    handleClick(e) {
+    handleClick(x, y) {
         if (!this.active) return; 
-
-        const rect = this.canvas.getBoundingClientRect();
-        const x = e.clientX - rect.left;
-        const y = e.clientY - rect.top;
 
         for (let i = this.bubbles.length - 1; i >= 0; i--) {
             let b = this.bubbles[i];
@@ -603,14 +693,38 @@ const VisualModule = {
         btnLaunch.addEventListener('mousedown', () => this.startLaunch());
         btnLaunch.addEventListener('mouseup', () => this.stopLaunch());
         btnLaunch.addEventListener('mouseleave', () => this.stopLaunch());
-        // Touch events
-        btnLaunch.addEventListener('touchstart', (e) => { e.preventDefault(); this.startLaunch(); });
-        btnLaunch.addEventListener('touchend', (e) => { e.preventDefault(); this.stopLaunch(); });
+        // Touch events - 优化移动端体验
+        btnLaunch.addEventListener('touchstart', (e) => { 
+            e.preventDefault(); 
+            this.startLaunch(); 
+        }, {passive: false});
+        btnLaunch.addEventListener('touchend', (e) => { 
+            e.preventDefault(); 
+            this.stopLaunch(); 
+        }, {passive: false});
+        btnLaunch.addEventListener('touchcancel', (e) => { 
+            e.preventDefault(); 
+            this.stopLaunch(); 
+        }, {passive: false});
 
         document.getElementById('btn-reset-visual').addEventListener('click', () => this.newGame());
         
-        document.getElementById('btn-plus').addEventListener('click', () => this.adjustAmount(1));
-        document.getElementById('btn-minus').addEventListener('click', () => this.adjustAmount(-1));
+        const btnPlus = document.getElementById('btn-plus');
+        const btnMinus = document.getElementById('btn-minus');
+        
+        // 添加触摸事件优化
+        btnPlus.addEventListener('click', () => this.adjustAmount(1));
+        btnMinus.addEventListener('click', () => this.adjustAmount(-1));
+        
+        // 添加触摸视觉反馈
+        [btnPlus, btnMinus].forEach(btn => {
+            btn.addEventListener('touchstart', () => {
+                btn.style.transform = 'scale(0.95)';
+            }, {passive: true});
+            btn.addEventListener('touchend', () => {
+                btn.style.transform = 'scale(1)';
+            }, {passive: true});
+        });
     },
 
     newGame() {
@@ -820,6 +934,14 @@ const EstimationModule = {
         
         const slider = document.getElementById('est-slider');
         slider.addEventListener('input', (e) => this.updateRealtimeCalc(e.target.value));
+        
+        // 添加触摸优化，确保移动端顺畅
+        slider.addEventListener('touchstart', () => {
+            slider.style.cursor = 'grabbing';
+        });
+        slider.addEventListener('touchend', () => {
+            slider.style.cursor = 'grab';
+        });
     },
 
     newGame() {
@@ -939,14 +1061,41 @@ const DivisionModule = {
         document.getElementById('btn-next-division').addEventListener('click', () => this.newGame());
         
         document.querySelectorAll('.numpad .num-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                this.resetIdleTimer(); // Reset timer on interaction
-                const val = e.target.dataset.val;
-                const action = e.target.id;
+            // 统一的点击处理
+            const handlePress = (e) => {
+                if (e) e.preventDefault();
+                this.resetIdleTimer();
+                const val = btn.dataset.val;
+                const action = btn.id;
                 if (val !== undefined) this.handleInput(val);
                 if (action === 'btn-backspace') this.handleBackspace();
                 if (action === 'btn-enter') this.handleEnter();
-            });
+                
+                // 添加视觉反馈
+                btn.style.transform = 'scale(0.9)';
+                setTimeout(() => {
+                    btn.style.transform = 'scale(1)';
+                }, 100);
+            };
+            
+            // 鼠标事件
+            btn.addEventListener('click', handlePress);
+            
+            // 触摸事件优化
+            btn.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                btn.style.backgroundColor = 'rgba(255, 255, 255, 0.3)';
+            }, {passive: false});
+            
+            btn.addEventListener('touchend', (e) => {
+                handlePress(e);
+                btn.style.backgroundColor = '';
+            }, {passive: false});
+            
+            btn.addEventListener('touchcancel', (e) => {
+                e.preventDefault();
+                btn.style.backgroundColor = '';
+            }, {passive: false});
         });
     },
 

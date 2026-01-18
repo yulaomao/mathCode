@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>移动端适配测试说明</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+            background: #f5f5f5;
+        }
+        .card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #0f0c29;
+            text-align: center;
+        }
+        h2 {
+            color: #302b63;
+            border-bottom: 2px solid #00d2ff;
+            padding-bottom: 10px;
+        }
+        .feature {
+            padding: 10px;
+            margin: 10px 0;
+            background: #f0f9ff;
+            border-left: 4px solid #00d2ff;
+            border-radius: 5px;
+        }
+        .test-step {
+            background: #fff5e6;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+            border-left: 4px solid #ffb800;
+        }
+        .checkmark {
+            color: #00ff87;
+            font-weight: bold;
+        }
+        code {
+            background: #f0f0f0;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: monospace;
+        }
+        .devices {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .device {
+            background: #e8f4f8;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        .btn-test {
+            display: inline-block;
+            background: linear-gradient(135deg, #00d2ff, #3a7bd5);
+            color: white;
+            padding: 15px 30px;
+            text-decoration: none;
+            border-radius: 25px;
+            font-weight: bold;
+            margin: 20px auto;
+            display: block;
+            text-align: center;
+            max-width: 300px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🚀 星际数学探险 - 移动端适配测试</h1>
+    
+    <div class="card">
+        <h2>📱 快速测试指南</h2>
+        
+        <div class="test-step">
+            <strong>步骤 1：在手机上打开项目</strong>
+            <p>使用手机浏览器打开 <code>index.html</code> 文件，或部署到服务器后访问。</p>
+        </div>
+        
+        <div class="test-step">
+            <strong>步骤 2：竖屏模式测试</strong>
+            <ul>
+                <li>检查页面是否全屏显示，无滚动条</li>
+                <li>点击各个导航按钮，观察切换是否流畅</li>
+                <li>测试"口算热身"模块，点击陨石看是否响应</li>
+                <li>尝试双击屏幕，确认页面不会放大</li>
+            </ul>
+        </div>
+        
+        <div class="test-step">
+            <strong>步骤 3：横屏模式测试</strong>
+            <ul>
+                <li>旋转手机到横屏方向</li>
+                <li>等待1-2秒，页面应自动调整布局</li>
+                <li>检查所有控件是否可见且可操作</li>
+                <li>测试Canvas游戏是否正常重绘</li>
+            </ul>
+        </div>
+        
+        <div class="test-step">
+            <strong>步骤 4：交互测试</strong>
+            <ul>
+                <li>点击所有按钮，应该有明显的按下反馈（缩放/水波纹）</li>
+                <li>拖动"星际导航"模块的滑块，应该流畅响应</li>
+                <li>长按"可视化"模块的发射按钮，检查连续发射</li>
+                <li>使用数字键盘输入，观察触摸反馈</li>
+            </ul>
+        </div>
+    </div>
+    
+    <div class="card">
+        <h2>✨ 已实现的移动端特性</h2>
+        
+        <div class="feature">
+            <strong class="checkmark">✓</strong> 防止双击放大和用户缩放
+        </div>
+        <div class="feature">
+            <strong class="checkmark">✓</strong> 支持iPhone刘海屏（Safe Area）
+        </div>
+        <div class="feature">
+            <strong class="checkmark">✓</strong> iOS地址栏自适应（动态视口高度）
+        </div>
+        <div class="feature">
+            <strong class="checkmark">✓</strong> 横竖屏自动切换和布局调整
+        </div>
+        <div class="feature">
+            <strong class="checkmark">✓</strong> 所有按钮符合44px最小触摸目标
+        </div>
+        <div class="feature">
+            <strong class="checkmark">✓</strong> 触摸反馈动画（水波纹、缩放效果）
+        </div>
+        <div class="feature">
+            <strong class="checkmark">✓</strong> Canvas触摸优化和防误触
+        </div>
+        <div class="feature">
+            <strong class="checkmark">✓</strong> 滑块控件触摸增强
+        </div>
+        <div class="feature">
+            <strong class="checkmark">✓</strong> 响应式字体和间距调整
+        </div>
+        <div class="feature">
+            <strong class="checkmark">✓</strong> 防止长按选择文本
+        </div>
+    </div>
+    
+    <div class="card">
+        <h2>📐 支持的设备尺寸</h2>
+        <div class="devices">
+            <div class="device">
+                <strong>📱 小屏手机</strong>
+                <p>≤ 380px<br>iPhone SE</p>
+            </div>
+            <div class="device">
+                <strong>📱 标准手机</strong>
+                <p>≤ 600px<br>iPhone 12/13/14</p>
+            </div>
+            <div class="device">
+                <strong>📱 大屏手机</strong>
+                <p>≤ 768px<br>iPhone Pro Max</p>
+            </div>
+            <div class="device">
+                <strong>💻 平板</strong>
+                <p>≤ 1000px<br>iPad / Android Tablet</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="card">
+        <h2>🔧 Chrome DevTools 测试</h2>
+        <p>如果没有实体移动设备，可以使用Chrome浏览器的设备模拟器：</p>
+        <ol>
+            <li>在Chrome中打开项目</li>
+            <li>按 <code>F12</code> 打开开发者工具</li>
+            <li>点击工具栏的设备图标 📱 或按 <code>Ctrl+Shift+M</code></li>
+            <li>选择设备预设：iPhone 12 Pro、iPad、Galaxy S20等</li>
+            <li>点击旋转图标测试横竖屏切换</li>
+            <li>使用鼠标模拟触摸操作</li>
+        </ol>
+    </div>
+    
+    <div class="card">
+        <h2>⚠️ 预期效果验证</h2>
+        <p><strong>✅ 正确的表现：</strong></p>
+        <ul>
+            <li>页面完全适配屏幕，无横向滚动</li>
+            <li>所有文字清晰可读</li>
+            <li>按钮易于点击，不会误触</li>
+            <li>横竖屏切换流畅，无闪烁</li>
+            <li>游戏canvas自动调整大小</li>
+            <li>触摸操作有视觉反馈</li>
+        </ul>
+        
+        <p><strong>❌ 需要注意的问题：</strong></p>
+        <ul>
+            <li>如果出现横向滚动条 → 可能某个元素宽度设置有误</li>
+            <li>如果按钮太小难以点击 → 检查min-height设置</li>
+            <li>如果切换方向时布局混乱 → 清除浏览器缓存重试</li>
+            <li>如果触摸无响应 → 检查是否启用了触摸事件</li>
+        </ul>
+    </div>
+    
+    <a href="index.html" class="btn-test">🎮 开始测试游戏</a>
+    
+    <div class="card" style="background: #f0f9ff; border: 2px solid #00d2ff;">
+        <h2>💡 开发提示</h2>
+        <p>如需进一步调整，可以修改以下文件：</p>
+        <ul>
+            <li><code>style.css</code> - 调整响应式断点和媒体查询</li>
+            <li><code>script.js</code> - 修改触摸事件处理逻辑</li>
+            <li><code>index.html</code> - 调整viewport和meta标签</li>
+        </ul>
+        <p>详细的功能清单请查看 <code>MOBILE_FEATURES.md</code> 文件。</p>
+    </div>
+</body>
+</html>

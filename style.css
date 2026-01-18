@@ -11,11 +11,15 @@
     --text-color: #ffffff;
     --font-main: 'Fredoka One', cursive, sans-serif;
     --font-body: 'Zcool KuaiLe', cursive, sans-serif;
+    --vh: 1vh; /* 用于iOS视口高度修正 */
 }
 
 * {
     box-sizing: border-box;
     user-select: none;
+    -webkit-user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
 }
 
 body {
@@ -26,9 +30,12 @@ body {
     color: var(--text-color);
     overflow: hidden; /* Prevent scroll on full screen game */
     height: 100vh;
+    height: 100dvh; /* Dynamic viewport height for mobile */
     display: flex;
     justify-content: center;
     align-items: center;
+    position: fixed;
+    width: 100%;
 }
 
 #starfield {
@@ -44,11 +51,20 @@ body {
     width: 95%;
     max-width: 1000px;
     height: 90vh;
+    height: 90dvh;
     display: flex;
     flex-direction: column;
     gap: 15px;
     position: relative;
     z-index: 1;
+}
+
+@supports (padding: max(0px)) {
+    .app-container {
+        padding-left: max(10px, env(safe-area-inset-left));
+        padding-right: max(10px, env(safe-area-inset-right));
+        padding-bottom: max(10px, env(safe-area-inset-bottom));
+    }
 }
 
 /* Glassmorphism Panels */
@@ -60,6 +76,49 @@ body {
     border-radius: 20px;
     box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
     padding: 15px;
+    touch-action: pan-y;
+}
+
+/* 触摸优化 - 增大可点击区域 */
+button, .nav-btn, .num-btn, .action-btn, .secondary-btn, .diff-btn {
+    min-height: 44px; /* Apple推荐的最小触摸目标 */
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+    position: relative;
+    overflow: hidden;
+}
+
+/* 按钮触摸反馈 */
+button:active, .nav-btn:active, .num-btn:active, .action-btn:active, .secondary-btn:active, .diff-btn:active {
+    transform: scale(0.95);
+    transition: transform 0.1s ease;
+}
+
+/* 水波纹效果 */
+button::after, .nav-btn::after, .num-btn::after, .action-btn::after, .secondary-btn::after, .diff-btn::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.4);
+    transform: translate(-50%, -50%);
+    transition: width 0.6s, height 0.6s;
+}
+
+button:active::after, .nav-btn:active::after, .num-btn:active::after, .action-btn:active::after, .secondary-btn:active::after, .diff-btn:active::after {
+    width: 200px;
+    height: 200px;
+}
+
+/* 防止长按选择文本 */
+button, a, .cell {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
 }
 
 /* Header */
@@ -269,7 +328,27 @@ header {
     width: 100%;
     flex: 1;
     overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
     padding: 10px;
+}
+
+/* 自定义滚动条样式（仅Webkit） */
+.visual-stage-v2::-webkit-scrollbar {
+    width: 6px;
+}
+
+.visual-stage-v2::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+}
+
+.visual-stage-v2::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 10px;
+}
+
+.visual-stage-v2::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.3);
 }
 
 .warehouse-panel, .robots-panel {
@@ -494,7 +573,9 @@ input[type=range]::-webkit-slider-thumb {
     transition: all 0.2s;
 }
 
-/* Responsive adjustments */
+/* ========== 移动端响应式适配 ========== */
+
+/* 平板设备 (竖屏) */
 @media (max-width: 768px) {
     .control-panel {
         flex-direction: column;
@@ -502,6 +583,476 @@ input[type=range]::-webkit-slider-thumb {
     }
     .visual-stage-v2 {
         flex-direction: column;
+    }
+    
+    .nav-btn {
+        font-size: 0.95rem;
+        padding: 8px 12px;
+    }
+    
+    .logo {
+        font-size: 1.4rem;
+    }
+    
+    .stats {
+        font-size: 1.2rem;
+        gap: 15px;
+    }
+}
+
+/* 手机设备 (竖屏) */
+@media (max-width: 600px) {
+    .app-container {
+        width: 100%;
+        height: 100vh;
+        height: 100dvh;
+        gap: 8px;
+    }
+    
+    /* Header优化 */
+    header {
+        height: 50px;
+        padding: 8px 10px;
+    }
+    
+    .logo {
+        font-size: 1.1rem;
+    }
+    
+    .stats {
+        font-size: 1rem;
+        gap: 10px;
+    }
+    
+    .stat-item .icon {
+        font-size: 1rem;
+    }
+    
+    /* 导航按钮优化 */
+    .main-menu {
+        padding: 5px;
+        gap: 5px;
+        overflow-x: auto;
+        overflow-y: hidden;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+    }
+    
+    .main-menu::-webkit-scrollbar {
+        display: none;
+    }
+    
+    .nav-btn {
+        font-size: 0.75rem;
+        padding: 6px 8px;
+        white-space: nowrap;
+        min-width: fit-content;
+    }
+    
+    /* 游戏区域优化 */
+    #game-area {
+        padding: 8px;
+    }
+    
+    /* 模块一：口算热身 */
+    .game-header-ui {
+        flex-direction: column;
+        gap: 8px;
+        padding: 5px;
+        align-items: stretch;
+    }
+    
+    .timer-box {
+        font-size: 1.3rem;
+        padding: 6px 12px;
+        text-align: center;
+    }
+    
+    .target-display {
+        font-size: 1rem;
+        padding: 8px 15px;
+        min-width: auto;
+        width: 100%;
+    }
+    
+    .target-display span#target-num {
+        font-size: 1.5rem;
+    }
+    
+    .overlay-menu {
+        min-width: auto;
+        width: 90%;
+        max-width: 300px;
+    }
+    
+    .overlay-menu h2 {
+        font-size: 1.3rem;
+    }
+    
+    .menu-desc {
+        font-size: 0.9rem;
+    }
+    
+    /* 模块二：可视化 */
+    .instruction {
+        font-size: 1.1rem;
+        margin-bottom: 10px;
+    }
+    
+    .instruction span {
+        font-size: 1.3rem;
+    }
+    
+    .sub-instruction {
+        font-size: 0.85rem;
+    }
+    
+    .panel-title {
+        font-size: 1rem;
+    }
+    
+    .mini-block {
+        width: 15px;
+        height: 15px;
+    }
+    
+    .robot-img {
+        font-size: 2rem;
+    }
+    
+    .robot-unit {
+        min-width: 60px;
+        padding: 8px;
+    }
+    
+    .stepper {
+        padding: 3px;
+        gap: 8px;
+    }
+    
+    .step-btn {
+        width: 35px;
+        height: 35px;
+        font-size: 1.3rem;
+    }
+    
+    #distribute-amount {
+        font-size: 1.5rem;
+        min-width: 35px;
+    }
+    
+    /* 模块三：估算 */
+    .nav-problem {
+        font-size: 1.8rem;
+    }
+    
+    .nav-label {
+        font-size: 0.85rem;
+    }
+    
+    .nav-feedback {
+        font-size: 1rem;
+    }
+    
+    .ship {
+        font-size: 3rem;
+        bottom: 10px;
+    }
+    
+    .destination-planet {
+        font-size: 3rem;
+        right: 5%;
+    }
+    
+    .slider-container label {
+        font-size: 1rem;
+    }
+    
+    input[type=range] {
+        width: 95%;
+    }
+    
+    .realtime-calc {
+        font-size: 1.2rem;
+        padding: 4px 10px;
+    }
+    
+    /* 模块四：竖式 */
+    .division-layout {
+        flex-direction: column;
+        gap: 15px;
+        align-items: center;
+    }
+    
+    .helper-character {
+        width: 100%;
+        flex-direction: row;
+        justify-content: center;
+        gap: 10px;
+        align-items: center;
+    }
+    
+    .avatar {
+        font-size: 3rem;
+    }
+    
+    .bubble {
+        font-size: 0.85rem;
+        padding: 10px;
+        max-width: 200px;
+    }
+    
+    .long-division-grid {
+        grid-template-columns: repeat(6, 35px);
+        grid-auto-rows: 45px;
+        font-size: 1.5rem;
+        gap: 3px;
+    }
+    
+    .numpad {
+        grid-template-columns: repeat(4, 1fr);
+        gap: 8px;
+        padding: 0 5px;
+    }
+    
+    .num-btn {
+        font-size: 1.2rem;
+        padding: 12px;
+    }
+    
+    /* 通用按钮 */
+    .action-btn {
+        padding: 12px 25px;
+        font-size: 1rem;
+    }
+    
+    .secondary-btn {
+        padding: 8px 15px;
+        font-size: 0.9rem;
+    }
+    
+    .feedback-text {
+        font-size: 1.3rem;
+    }
+}
+
+/* 小屏手机 */
+@media (max-width: 380px) {
+    .logo {
+        font-size: 0.95rem;
+    }
+    
+    .stats {
+        font-size: 0.85rem;
+        gap: 8px;
+    }
+    
+    .nav-btn {
+        font-size: 0.65rem;
+        padding: 5px 6px;
+    }
+    
+    .timer-box {
+        font-size: 1.1rem;
+        padding: 5px 10px;
+    }
+    
+    .target-display {
+        font-size: 0.85rem;
+        padding: 6px 10px;
+    }
+    
+    .target-display span#target-num {
+        font-size: 1.2rem;
+    }
+    
+    .long-division-grid {
+        grid-template-columns: repeat(6, 28px);
+        grid-auto-rows: 38px;
+        font-size: 1.2rem;
+    }
+    
+    .num-btn {
+        font-size: 1rem;
+        padding: 10px;
+    }
+}
+
+/* 横屏模式适配 */
+@media (max-height: 500px) and (orientation: landscape) {
+    body {
+        align-items: flex-start;
+        padding-top: 5px;
+    }
+    
+    .app-container {
+        height: 95vh;
+        height: 95dvh;
+        gap: 5px;
+        max-height: 100vh;
+    }
+    
+    header {
+        height: 40px;
+        padding: 5px 10px;
+    }
+    
+    .logo {
+        font-size: 1rem;
+    }
+    
+    .stats {
+        font-size: 0.9rem;
+        gap: 10px;
+    }
+    
+    .stat-item {
+        gap: 3px;
+    }
+    
+    .main-menu {
+        padding: 3px;
+        gap: 5px;
+    }
+    
+    .nav-btn {
+        font-size: 0.7rem;
+        padding: 5px 8px;
+        min-height: 36px;
+    }
+    
+    #game-area {
+        padding: 5px;
+    }
+    
+    /* 游戏模块横屏优化 */
+    .game-header-ui {
+        flex-direction: row;
+        gap: 10px;
+        padding: 3px 10px;
+    }
+    
+    .timer-box {
+        font-size: 1.1rem;
+        padding: 5px 10px;
+    }
+    
+    .instruction {
+        font-size: 1.1rem;
+        margin-bottom: 10px;
+    }
+    
+    .instruction span {
+        font-size: 1.3rem;
+    }
+    
+    .target-display {
+        font-size: 0.85rem;
+        padding: 5px 15px;
+    }
+    
+    .overlay-menu {
+        max-height: 85vh;
+        overflow-y: auto;
+    }
+    
+    .visual-stage-v2 {
+        flex-direction: row;
+        gap: 10px;
+    }
+    
+    .warehouse-panel,
+    .robots-panel {
+        flex: 1;
+        max-height: 30vh;
+        overflow-y: auto;
+    }
+    
+    .control-panel {
+        flex-direction: row;
+        padding: 8px;
+        gap: 15px;
+    }
+    
+    .nav-cockpit {
+        flex-direction: row;
+        gap: 10px;
+    }
+    
+    .nav-screen {
+        flex: 0 0 30%;
+        padding: 10px;
+    }
+    
+    .space-view {
+        flex: 1;
+    }
+    
+    .nav-controls-panel {
+        flex: 0 0 30%;
+        padding: 10px;
+        gap: 10px;
+    }
+    
+    .nav-problem {
+        font-size: 1.5rem;
+    }
+    
+    .ship {
+        font-size: 2.5rem;
+    }
+    
+    .destination-planet {
+        font-size: 2.5rem;
+    }
+    
+    .division-layout {
+        flex-direction: row;
+        gap: 20px;
+    }
+    
+    .helper-character {
+        flex-direction: column;
+        width: 120px;
+    }
+    
+    .avatar {
+        font-size: 3rem;
+    }
+    
+    .bubble {
+        font-size: 0.75rem;
+        padding: 8px;
+    }
+    
+    .long-division-grid {
+        grid-template-columns: repeat(6, 30px);
+        grid-auto-rows: 40px;
+        font-size: 1.3rem;
+    }
+    
+    .numpad {
+        grid-template-columns: repeat(6, 1fr);
+        gap: 6px;
+    }
+    
+    .num-btn {
+        font-size: 1rem;
+        padding: 8px;
+    }
+}
+
+/* 横屏且宽屏设备 */
+@media (min-width: 600px) and (orientation: landscape) {
+    .nav-btn {
+        font-size: 0.9rem;
+        padding: 8px 12px;
+    }
+    
+    .long-division-grid {
+        grid-template-columns: repeat(6, 35px);
+        grid-auto-rows: 45px;
+        font-size: 1.6rem;
     }
 }
 
@@ -529,6 +1080,15 @@ input[type=range]::-webkit-slider-thumb {
     color: white;
     border-radius: 20px;
     cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.secondary-btn:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+.secondary-btn:active {
+    transform: scale(0.95);
 }
 
 /* Module 3: Navigation (Estimation) */
@@ -600,6 +1160,8 @@ input[type=range]::-webkit-slider-thumb {
 .planet-node {
     width: 80px;
     height: 80px;
+    min-width: 60px;
+    min-height: 60px;
     border-radius: 50%;
     background: radial-gradient(circle at 30% 30%, #4facfe, #00f2fe);
     display: flex;
@@ -613,9 +1175,11 @@ input[type=range]::-webkit-slider-thumb {
     position: relative;
     box-shadow: 0 0 20px rgba(79, 172, 254, 0.4);
     border: 2px solid transparent;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
 }
 
-.planet-node:hover {
+.planet-node:hover, .planet-node:active {
     transform: scale(1.2);
     box-shadow: 0 0 30px rgba(79, 172, 254, 0.8);
     z-index: 10;
@@ -770,6 +1334,117 @@ input[type=range]::-webkit-slider-thumb {
     font-family: var(--font-main);
 }
 
+/* 移动端滑动优化 */
+.glass-panel {
+    -webkit-overflow-scrolling: touch;
+}
+
+/* 屏幕方向切换平滑过渡 */
+* {
+    transition: font-size 0.3s ease, padding 0.3s ease, margin 0.3s ease;
+}
+
+button, .nav-btn, .num-btn, .action-btn, .secondary-btn, .diff-btn {
+    transition: all 0.2s ease, transform 0.1s ease;
+}
+
+/* 防止iOS Safari下拉刷新 */
+body {
+    overscroll-behavior-y: none;
+}
+
+/* 改进Canvas容器的触摸体验 */
+.game-canvas-container canvas {
+    touch-action: none;
+    -webkit-user-select: none;
+    user-select: none;
+}
+
+/* 优化弹窗在移动端的显示 */
+.overlay-menu {
+    max-width: 90vw;
+    max-height: 80vh;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* 改进行星按钮的触摸区域 */
+.planet-btn {
+    min-width: 60px;
+    min-height: 60px;
+    touch-action: manipulation;
+}
+
+/* 优化数字输入框在移动端的显示 */
+.nav-slider {
+    min-height: 44px;
+    touch-action: pan-x;
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 8px;
+    border-radius: 5px;
+    background: rgba(255, 255, 255, 0.2);
+    outline: none;
+    cursor: pointer;
+}
+
+.nav-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    cursor: grab;
+    box-shadow: 0 2px 10px rgba(0, 210, 255, 0.5);
+    transition: all 0.2s ease;
+}
+
+.nav-slider::-webkit-slider-thumb:active {
+    cursor: grabbing;
+    transform: scale(1.2);
+    box-shadow: 0 4px 15px rgba(0, 210, 255, 0.8);
+}
+
+.nav-slider::-moz-range-thumb {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    cursor: grab;
+    border: none;
+    box-shadow: 0 2px 10px rgba(0, 210, 255, 0.5);
+    transition: all 0.2s ease;
+}
+
+.nav-slider::-moz-range-thumb:active {
+    cursor: grabbing;
+    transform: scale(1.2);
+    box-shadow: 0 4px 15px rgba(0, 210, 255, 0.8);
+}
+
+/* 提升小屏设备上的可读性 */
+@media (max-width: 360px) {
+    .app-container {
+        gap: 8px;
+    }
+    
+    .glass-panel {
+        padding: 10px;
+        border-radius: 15px;
+    }
+    
+    .logo {
+        font-size: 0.85rem;
+    }
+    
+    .stats {
+        font-size: 0.75rem;
+        gap: 5px;
+    }
+}
+
 .num-btn:active {
     background: rgba(255, 255, 255, 0.3);
     transform: scale(0.9);
@@ -815,14 +1490,7 @@ input[type=range]::-webkit-slider-thumb {
     100% { transform: translateX(0); }
 }
 
-/* Responsive */
-@media (max-width: 768px) {
-    .stats { font-size: 1rem; }
-    .logo { font-size: 1.2rem; }
-    .nav-btn { padding: 8px 10px; font-size: 0.9rem; }
-    .numpad { grid-template-columns: repeat(4, 1fr); }
-    .long-division-grid { grid-template-columns: repeat(6, 30px); font-size: 1.5rem; }
-}
+/* 旧的响应式规则已整合到上面的移动端适配中 */
 
 .feedback-text {
     text-align: center;

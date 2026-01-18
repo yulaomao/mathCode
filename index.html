@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>星际数学探险：三位数除以两位数</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Zcool+KuaiLe&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- 动态星空背景 -->
+    <canvas id="starfield"></canvas>
+
+    <div class="app-container">
+        <header class="glass-panel">
+            <div class="logo">🚀 星际数学探险</div>
+            <div class="stats">
+                <div class="stat-item">
+                    <span class="icon">⭐</span>
+                    <span id="score">0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="icon">🔥</span>
+                    <span id="streak">0</span>
+                </div>
+            </div>
+        </header>
+
+        <nav class="main-menu glass-panel">
+            <button class="nav-btn active" data-module="warmup">⚡ 能量收集 (口算)</button>
+            <button class="nav-btn" data-module="visual">🔮 晶体分配 (原理)</button>
+            <button class="nav-btn" data-module="estimation">🎯 导航定位 (估算)</button>
+            <button class="nav-btn" data-module="division">🛸 核心引擎 (竖式)</button>
+        </nav>
+
+        <main id="game-area" class="glass-panel">
+            <!-- 模块一：口算热身 -->
+            <section id="module-warmup" class="game-module active">
+                <!-- 游戏开始/结算 菜单 -->
+                <div id="warmup-menu" class="glass-panel overlay-menu">
+                    <h2>⚡ 能量收集挑战</h2>
+                    <p class="menu-desc">60秒倒计时！每收集3个正确能量块，目标就会刷新。</p>
+                    <div id="warmup-result" style="display:none;">
+                        <h3>时间到！</h3>
+                        <p>最终得分: <span id="final-score">0</span></p>
+                    </div>
+                    <div class="difficulty-select">
+                        <p>选择难度开始:</p>
+                        <button class="action-btn diff-btn" data-speed="1">简单 🐢</button>
+                        <button class="action-btn diff-btn" data-speed="2">普通 🐇</button>
+                        <button class="action-btn diff-btn" data-speed="3.5">困难 🚀</button>
+                    </div>
+                </div>
+
+                <div class="game-header-ui">
+                    <div class="timer-box">⏳ <span id="warmup-timer">60</span>s</div>
+                    <div id="warmup-target-display" class="target-display">
+                        寻找商是 <span id="target-num">?</span> 的气泡
+                        <div class="progress-dots" id="target-progress">
+                            <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="game-canvas-container">
+                    <canvas id="warmup-canvas"></canvas>
+                </div>
+            </section>
+
+            <!-- 模块二：可视化算理 -->
+            <section id="module-visual" class="game-module">
+                <div class="instruction">
+                    <span id="visual-question">320 ÷ 40 = ?</span>
+                    <div class="sub-instruction">调整每人分配的数量，点击发射，直到正好分完！</div>
+                </div>
+                
+                <div class="visual-stage-v2">
+                    <div class="warehouse-panel">
+                        <div class="panel-title">📦 能量仓库 (剩余: <span id="warehouse-count">0</span>)</div>
+                        <div class="blocks-grid" id="source-blocks">
+                            <!-- 动态生成的小方块 -->
+                        </div>
+                    </div>
+                    
+                    <div class="robots-panel">
+                        <div class="panel-title">🤖 接收小队</div>
+                        <div class="robots-grid" id="robots-container">
+                            <!-- 机器人 -->
+                        </div>
+                    </div>
+                </div>
+
+                <div class="control-panel glass-panel">
+                    <div class="control-group">
+                        <label>每人分几个？</label>
+                        <div class="stepper">
+                            <button id="btn-minus" class="step-btn">-</button>
+                            <span id="distribute-amount">1</span>
+                            <button id="btn-plus" class="step-btn">+</button>
+                        </div>
+                    </div>
+                    <button id="btn-launch" class="action-btn">🚀 发射能量</button>
+                    <button id="btn-reset-visual" class="secondary-btn">🔄 换一题</button>
+                </div>
+                <div id="visual-feedback" class="feedback-text"></div>
+            </section>
+
+            <!-- 模块三：星际导航 (原估算靶场) -->
+            <section id="module-estimation" class="game-module">
+                <div class="nav-cockpit">
+                    <div class="nav-screen">
+                        <div class="nav-problem">
+                            <span class="nav-label">目标坐标计算:</span>
+                            <span id="est-dividend">?</span> ÷ <span id="est-divisor">?</span>
+                        </div>
+                        <div class="nav-feedback" id="nav-feedback-display">
+                            请调节推力滑块...
+                        </div>
+                    </div>
+                    
+                    <div class="space-view" id="space-view">
+                        <div id="player-ship" class="ship">🚀</div>
+                        <div class="destination-planet" id="dest-planet">🪐</div>
+                    </div>
+                    
+                    <div class="nav-controls-panel">
+                        <div class="slider-container">
+                            <label>引擎推力 (商): <span id="est-slider-val">5</span></label>
+                            <input type="range" id="est-slider" min="1" max="9" step="1" value="5">
+                        </div>
+                        <div class="realtime-calc">
+                            <span id="est-divisor-display">30</span> x <span id="est-quotient-display">5</span> = <span id="est-product-display">150</span>
+                        </div>
+                        <button id="btn-engage" class="action-btn">🔥 启动引擎</button>
+                        <button id="btn-next-est" class="secondary-btn">寻找新航线 🌌</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 模块四：交互式竖式 -->
+            <section id="module-division" class="game-module">
+                <div class="division-header" style="width: 100%; display: flex; justify-content: flex-end; padding-right: 20px; margin-bottom: 10px;">
+                    <button id="btn-next-division" class="secondary-btn">换一题 🔄</button>
+                </div>
+                <div class="division-layout">
+                    <div class="helper-character">
+                        <div class="avatar" id="helper-avatar">🤖</div>
+                        <div class="bubble" id="helper-bubble">准备好启动引擎了吗？</div>
+                    </div>
+                    
+                    <div class="calculation-area">
+                        <div class="long-division-grid" id="division-grid">
+                            <!-- 动态生成的竖式网格 -->
+                        </div>
+                    </div>
+                </div>
+                <div class="numpad">
+                    <button class="num-btn" data-val="1">1</button>
+                    <button class="num-btn" data-val="2">2</button>
+                    <button class="num-btn" data-val="3">3</button>
+                    <button class="num-btn" data-val="4">4</button>
+                    <button class="num-btn" data-val="5">5</button>
+                    <button class="num-btn" data-val="6">6</button>
+                    <button class="num-btn" data-val="7">7</button>
+                    <button class="num-btn" data-val="8">8</button>
+                    <button class="num-btn" data-val="9">9</button>
+                    <button class="num-btn" data-val="0">0</button>
+                    <button class="num-btn action" id="btn-backspace">⌫</button>
+                    <button class="num-btn action" id="btn-enter">确认</button>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- 音效上下文将由JS生成 -->
+    <script src="script.js"></script>
+</body>
+</html>

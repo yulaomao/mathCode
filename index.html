@@ -3,10 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="format-detection" content="telephone=no">
-    <title>星际数学探险：三位数除以两位数</title>
+    <title>基于豆包大模型的小学数学智能互动支持系统</title>
     <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Zcool+KuaiLe&display=swap" rel="stylesheet">
 </head>
@@ -15,28 +13,46 @@
     <canvas id="starfield"></canvas>
 
     <div class="app-container">
-        <header class="glass-panel">
-            <div class="logo">🚀 星际数学探险</div>
-            <div class="stats">
-                <div class="stat-item">
-                    <span class="icon">⭐</span>
-                    <span id="score">0</span>
+        <header class="app-topbar glass-panel" aria-label="课堂总控条">
+            <div class="topbar-brand">
+                <div class="logo">🚀 星际数学探险</div>
+                <div class="topbar-copy">
+                    <p>基于豆包大模型的小学数学智能互动支持系统</p>
                 </div>
-                <div class="stat-item">
-                    <span class="icon">🔥</span>
-                    <span id="streak">0</span>
+            </div>
+
+            <div class="topbar-status">
+                <div class="topbar-status-card">
+                    <span class="topbar-label">当前环节</span>
+                    <strong id="topbar-stage-name">口算热身</strong>
                 </div>
+                <div class="topbar-status-card">
+                    <span class="topbar-label">完成进度</span>
+                    <strong id="completed-count">0 / 4</strong>
+                </div>
+                <div class="topbar-scoreboard">
+                    <div class="stat-item">
+                        <span class="icon">⭐</span>
+                        <span id="score">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="icon">🔥</span>
+                        <span id="streak">0</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="topbar-controls" role="group" aria-label="教师控制">
+                <button type="button" id="toggle-teacher-mode" class="secondary-btn is-on" aria-pressed="true">教师模式</button>
+                <button type="button" id="toggle-pause" class="secondary-btn" aria-pressed="false">暂停</button>
+                <button type="button" id="toggle-voice" class="secondary-btn is-on" aria-pressed="true">语音</button>
+                <button type="button" id="toggle-sound" class="secondary-btn is-on" aria-pressed="true">音效</button>
             </div>
         </header>
 
-        <nav class="main-menu glass-panel">
-            <button class="nav-btn active" data-module="warmup">⚡ 能量收集 (口算)</button>
-            <button class="nav-btn" data-module="visual">🔮 晶体分配 (原理)</button>
-            <button class="nav-btn" data-module="estimation">🎯 导航定位 (估算)</button>
-            <button class="nav-btn" data-module="division">🛸 核心引擎 (竖式)</button>
-        </nav>
-
-        <main id="game-area" class="glass-panel">
+        <div class="classroom-shell">
+            <section class="stage-panel" aria-label="互动主舞台">
+                <main id="game-area" class="glass-panel">
             <!-- 模块一：口算热身 -->
             <section id="module-warmup" class="game-module active">
                 <!-- 游戏开始/结算 菜单 -->
@@ -105,7 +121,7 @@
                     <button id="btn-launch" class="action-btn">🚀 发射能量</button>
                     <button id="btn-reset-visual" class="secondary-btn">🔄 换一题</button>
                 </div>
-                <div id="visual-feedback" class="feedback-text"></div>
+                <div id="visual-feedback" class="feedback-text" role="status" aria-live="polite"></div>
             </section>
 
             <!-- 模块三：星际导航 (原估算靶场) -->
@@ -148,7 +164,7 @@
                 <div class="division-layout">
                     <div class="helper-character">
                         <div class="avatar" id="helper-avatar">🤖</div>
-                        <div class="bubble" id="helper-bubble">准备好启动引擎了吗？</div>
+                        <div class="bubble" id="helper-bubble" role="status" aria-live="polite">准备好启动引擎了吗？</div>
                     </div>
                     
                     <div class="calculation-area">
@@ -172,7 +188,222 @@
                     <button class="num-btn action" id="btn-enter">确认</button>
                 </div>
             </section>
-        </main>
+
+            <section id="module-summary" class="game-module summary-module">
+                <div class="summary-shell">
+                    <div class="summary-hero glass-panel">
+                        <div class="summary-copy">
+                            <div class="summary-kicker">课堂总结页</div>
+                            <h2>三位数除以两位数学习总结</h2>
+                            <p id="summary-overview">当前已完成 0 / 4 个核心环节，建议继续推进学习任务后再进行完整总结。</p>
+                        </div>
+                        <div class="summary-progress-ring">
+                            <span class="ring-label">达成度</span>
+                            <strong id="summary-progress-rate">0%</strong>
+                        </div>
+                    </div>
+
+                    <div class="summary-grid">
+                        <article class="summary-card">
+                            <h3>学习报告</h3>
+                            <div class="summary-stat-list">
+                                <div class="summary-stat-row">
+                                    <span>累计积分</span>
+                                    <strong id="summary-score">0</strong>
+                                </div>
+                                <div class="summary-stat-row">
+                                    <span>最高连击</span>
+                                    <strong id="summary-best-streak">0</strong>
+                                </div>
+                                <div class="summary-stat-row">
+                                    <span>学习时长</span>
+                                    <strong id="summary-duration">00:00</strong>
+                                </div>
+                                <div class="summary-stat-row">
+                                    <span>课堂状态</span>
+                                    <strong id="summary-level">启航中</strong>
+                                </div>
+                            </div>
+                        </article>
+
+                        <article class="summary-card">
+                            <h3>模块完成状态</h3>
+                            <div class="summary-module-list">
+                                <div class="summary-module-item">
+                                    <span>口算热身</span>
+                                    <strong id="summary-module-warmup">待完成</strong>
+                                </div>
+                                <div class="summary-module-item">
+                                    <span>算理探究</span>
+                                    <strong id="summary-module-visual">待完成</strong>
+                                </div>
+                                <div class="summary-module-item">
+                                    <span>估算试商</span>
+                                    <strong id="summary-module-estimation">待完成</strong>
+                                </div>
+                                <div class="summary-module-item">
+                                    <span>竖式巩固</span>
+                                    <strong id="summary-module-division">待完成</strong>
+                                </div>
+                            </div>
+                        </article>
+
+                        <article class="summary-card">
+                            <h3>课堂总结建议</h3>
+                            <div class="summary-points" id="summary-points">
+                                <p>先完成至少两个核心环节，再带学生做阶段回顾。</p>
+                                <p>关注学生是否能说清“为什么这样试商”。</p>
+                                <p>最后引导学生用竖式语言复述完整步骤。</p>
+                            </div>
+                        </article>
+
+                        <article class="summary-card summary-card-wide">
+                            <h3>课后延伸</h3>
+                            <p id="summary-extension">可补充一组同类型练习，帮助学生把口算估商策略迁移到纸笔竖式。</p>
+                            <div class="summary-actions">
+                                <button type="button" id="btn-summary-return" class="secondary-btn">返回学习模块</button>
+                                <button type="button" id="btn-summary-reset" class="action-btn">重新开始整课</button>
+                            </div>
+                        </article>
+                    </div>
+                </div>
+            </section>
+
+                </main>
+            </section>
+
+            <aside class="insight-dock glass-panel" aria-label="课堂智能驾驶舱">
+                <div class="insight-dock-header">
+                    <div class="insight-dock-copy">
+                        <div class="report-kicker">课堂智能驾驶舱</div>
+                        <h2>实时学情与 AI 辅助</h2>
+                    </div>
+                    <div class="report-badge" id="report-level">启航中</div>
+                </div>
+
+                <p class="teacher-tip teacher-only" id="teacher-tip" aria-live="polite">教师建议：先用热身模块唤醒学生旧知，再进入算理探究。</p>
+
+                <div class="dock-tab-bar" role="tablist" aria-label="驾驶舱标签">
+                    <button type="button" class="dock-tab is-active" data-dock-tab="analytics" role="tab" aria-selected="true">实时学情</button>
+                    <button type="button" class="dock-tab" data-dock-tab="ai" role="tab" aria-selected="false">虚拟教师</button>
+                </div>
+
+                <div class="dock-content">
+                    <section class="dock-panel is-active" data-dock-panel="analytics" aria-label="实时学情面板">
+                        <div class="report-header">
+                            <div>
+                                <div class="report-kicker">实时学情</div>
+                                <h3>课堂达成追踪</h3>
+                                <p id="report-status-text">已完成 0 / 4 个核心环节，适合继续按模块推进。</p>
+                            </div>
+                        </div>
+
+                        <div class="report-metrics">
+                            <div class="report-metric-card">
+                                <span class="metric-label">完成率</span>
+                                <strong id="report-progress">0%</strong>
+                            </div>
+                            <div class="report-metric-card">
+                                <span class="metric-label">累计积分</span>
+                                <strong id="report-score">0</strong>
+                            </div>
+                            <div class="report-metric-card">
+                                <span class="metric-label">最高连击</span>
+                                <strong id="report-best-streak">0</strong>
+                            </div>
+                        </div>
+
+                        <div class="module-status-grid" id="module-status-grid">
+                            <article class="module-status-card" data-module-card="warmup">
+                                <span class="module-status-name">口算热身</span>
+                                <strong id="module-status-warmup">待完成</strong>
+                                <p id="module-status-note-warmup">建议先做导入热身，唤醒旧知。</p>
+                            </article>
+                            <article class="module-status-card" data-module-card="visual">
+                                <span class="module-status-name">算理探究</span>
+                                <strong id="module-status-visual">待完成</strong>
+                                <p id="module-status-note-visual">借助分配动画建立平均分模型。</p>
+                            </article>
+                            <article class="module-status-card" data-module-card="estimation">
+                                <span class="module-status-name">估算试商</span>
+                                <strong id="module-status-estimation">待完成</strong>
+                                <p id="module-status-note-estimation">通过试商判断商偏大还是偏小。</p>
+                            </article>
+                            <article class="module-status-card" data-module-card="division">
+                                <span class="module-status-name">竖式巩固</span>
+                                <strong id="module-status-division">待完成</strong>
+                                <p id="module-status-note-division">完成试商、乘、减、落的完整流程。</p>
+                            </article>
+                        </div>
+
+                        <div class="analytics-grid" aria-label="课堂过程数据">
+                            <article class="analytics-card">
+                                <span class="analytics-label">口算正确率</span>
+                                <strong id="analytics-warmup-accuracy">暂无</strong>
+                            </article>
+                            <article class="analytics-card">
+                                <span class="analytics-label">估算试商</span>
+                                <strong id="analytics-estimation-accuracy">暂无</strong>
+                            </article>
+                            <article class="analytics-card">
+                                <span class="analytics-label">竖式提示次数</span>
+                                <strong id="analytics-division-hints">0 次</strong>
+                            </article>
+                            <article class="analytics-card">
+                                <span class="analytics-label">学习时长</span>
+                                <strong id="analytics-session-duration">00:00</strong>
+                            </article>
+                        </div>
+                    </section>
+
+                    <section class="dock-panel" data-dock-panel="ai" aria-label="虚拟教师面板">
+                        <div class="ai-chat-shell">
+                            <div class="ai-chat-head">
+                                <div>
+                                    <div class="report-kicker">豆包虚拟教师</div>
+                                    <h3>题目问答</h3>
+                                </div>
+                            </div>
+
+                            <div class="virtual-teacher-log" id="ai-teacher-log" aria-live="polite"></div>
+
+                            <div class="virtual-teacher-input glass-panel">
+                                <label for="ai-teacher-input" class="sr-only">向虚拟教师提问</label>
+                                <textarea id="ai-teacher-input" rows="3" placeholder="直接输入想问的问题，或继续追问上一句内容，例如：那这一步为什么这样算？"></textarea>
+                                <div class="virtual-teacher-actions">
+                                    <button type="button" id="btn-ai-voice-input" class="secondary-btn">语音转文字</button>
+                                    <button type="button" id="btn-ai-send" class="action-btn">发送</button>
+                                </div>
+                                <p class="virtual-teacher-status" id="ai-teacher-status">直接发送问题或继续追问，我会结合上文连续回答。</p>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </aside>
+        </div>
+
+        <footer class="flow-footer glass-panel">
+            <div class="flow-footer-copy">
+                <div class="report-kicker">课堂流程</div>
+            </div>
+
+            <nav class="flow-nav" aria-label="学习模块导航">
+                <button class="nav-btn active" data-module="warmup">1 热身</button>
+                <button class="nav-btn" data-module="visual">2 算理</button>
+                <button class="nav-btn" data-module="estimation">3 估算</button>
+                <button class="nav-btn" data-module="division">4 竖式</button>
+                <button class="nav-btn nav-btn-summary" data-module="summary">5 复盘</button>
+            </nav>
+
+            <div class="flow-actions">
+                <button type="button" id="btn-reset-current" class="secondary-btn">重置本环节</button>
+            </div>
+        </footer>
+
+        <button type="button" id="btn-ai-fab" class="ai-entry-fab" aria-label="打开虚拟教师">
+            <strong id="ai-service-model">虚拟教师</strong>
+            <span class="ai-service-caption" id="ai-service-caption">点击打开虚拟教师</span>
+        </button>
     </div>
 
     <!-- 音效上下文将由JS生成 -->
